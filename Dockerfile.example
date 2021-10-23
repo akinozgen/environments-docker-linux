@@ -1,0 +1,44 @@
+FROM --platform=linux/x86_64 debian:latest
+
+ARG USER_PWD=<USER_PWD>
+ARG USER_NAME=<USER_NAME>
+ARG DOTFILES_REPO_URL=<DOTFILES_REPO_URL>
+ARG DOTFILES_PATH=<DOTFILES_PATH>
+ARG GITHUB_ACCESS_TOKEN=<GITHUB_ACCESS_TOKEN>
+ARG SSH_PUBLIC_KEY_URL=<SSH_PUBLIC_KEY_URL>
+ARG SSH_PRIVATE_KEY_URL=<SSH_PRIVATE_KEY_URL>
+ARG SSH_KNOWN_HOSTS_FILE=<SSH_KNOWN_HOSTS_FILE>
+ARG SHARED_FILESYSTEM_PATH=<SHARED_FILESYSTEM_PATH>
+
+# System update & base packages
+RUN apt-get update && apt-get dist-upgrade -y
+RUN apt-get install zsh curl wget neovim procps git build-essential net-tools sudo ffmpeg youtube-dl fzf -y
+
+# Nodejs
+RUN sh -c $(curl -fsSL https://deb.nodesource.com/setup_17.x)
+RUN apt update
+RUN apt-get install -y nodejs npm
+
+# Yarnpkg
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.lis
+RUN apt-get update -y && sudo apt-get install yarn -y
+
+# Oh-my-zsh
+# Stolen from: https://github.com/deluan/zsh-in-docker
+RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.2/zsh-in-docker.sh)" -- \
+    -t https://github.com/denysdovhan/spaceship-prompt \
+    -a 'SPACESHIP_PROMPT_ADD_NEWLINE="false"' \
+    -a 'SPACESHIP_PROMPT_SEPARATE_LINE="false"' \
+    -p git \
+    -p https://github.com/zsh-users/zsh-autosuggestions \
+    -p https://github.com/zsh-users/zsh-completions
+
+# Add my user
+RUN useradd -m -d /home/$USER_NAME -p$USER_PWD -s /usr/bin/zsh -U $USER_NAME
+RUN usermod -aG sudo $USER_NAME
+
+USER $USER_NAME
+WORKDIR /home/$USER_NAME
+
+ENTRYPOINT [ "/usr/bin/zsh" ]
