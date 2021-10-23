@@ -35,10 +35,15 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -p https://github.com/zsh-users/zsh-completions
 
 # Add my user
-RUN useradd -m -d /home/$USER_NAME -p$USER_PWD -s /usr/bin/zsh -U $USER_NAME
-RUN usermod -aG sudo $USER_NAME
+RUN useradd -m -d /home/${USER_NAME} -p${USER_PWD} -s /usr/bin/zsh -U ${USER_NAME}
+RUN usermod -aG sudo ${USER_NAME}
 
-USER $USER_NAME
-WORKDIR /home/$USER_NAME
+# Get dotfiles
+RUN git clone ${DOTFILES_REPO_URL} /home/${USER_NAME}/dotfiles
 
+# Copy dotfiles to user home
+WORKDIR /home/${USER_NAME}/dotfiles
+
+USER ${USER_NAME}
+# WORKDIR /home/${USER_NAME}
 ENTRYPOINT [ "/usr/bin/zsh" ]
