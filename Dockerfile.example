@@ -41,9 +41,12 @@ RUN usermod -aG sudo ${USER_NAME}
 # Get dotfiles
 RUN git clone ${DOTFILES_REPO_URL} /home/${USER_NAME}/dotfiles
 
-# Copy dotfiles to user home
-WORKDIR /home/${USER_NAME}/dotfiles
+# Copy dotfiles to user home and delete repo directory
+WORKDIR /home/${USER_NAME}/dotfiles/${DOTFILES_PATH}
+RUN yes | cp -rip ./.* /home/${USER_NAME}/
+RUN rm -rf /home/${USER_NAME}/dotfiles
 
 USER ${USER_NAME}
+
 # WORKDIR /home/${USER_NAME}
 ENTRYPOINT [ "/usr/bin/zsh" ]
