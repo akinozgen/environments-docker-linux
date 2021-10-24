@@ -12,7 +12,6 @@ How to use:
    - SSH_PUBLIC_KEY_URL: If you got public/private key somewhere around the web, set this to its url
    - SSH_PRIVATE_KEY_URL: Same for SSH_PUBLIC_KEY_URL
    - SSH_KNOWN_HOSTS_FILE: Same for SSH_PUBLIC_KEY_URL
-   - SHARED_FILESYSTEM_PATH: If you want to share a folder from your host computer, set this to a path that you want to mount.
 
 
 > Note: If you set GITHUB_ACCESS_TOKEN you might want to change your DOTFILES_REPO_URL like this: `https://${GITHUB_ACCESS_TOKEN}@github.com/akinozgen/environments`
