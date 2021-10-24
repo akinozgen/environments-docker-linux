@@ -8,7 +8,6 @@ ARG GITHUB_ACCESS_TOKEN=<GITHUB_ACCESS_TOKEN>
 ARG SSH_PUBLIC_KEY_URL=<SSH_PUBLIC_KEY_URL>
 ARG SSH_PRIVATE_KEY_URL=<SSH_PRIVATE_KEY_URL>
 ARG SSH_KNOWN_HOSTS_FILE=<SSH_KNOWN_HOSTS_FILE>
-ARG SHARED_FILESYSTEM_PATH=<SHARED_FILESYSTEM_PATH>
 
 # System update & base packages
 RUN apt-get update && apt-get dist-upgrade -y
@@ -33,6 +32,22 @@ RUN echo ${USER_NAME}:${USER_PWD} | chpasswd
 # Install lsd-musl
 RUN wget https://github.com/Peltoche/lsd/releases/download/0.20.1/lsd-musl_0.20.1_amd64.deb
 RUN yes | dpkg -i lsd-musl_0.20.1_amd64.deb
+
+
+# .ssh folder contents
+RUN mkdir /home/${USER_NAME}/.ssh && chmod 700 /home/${USER_NAME}/.ssh 
+WORKDIR /home/${USER_NAME}/.ssh
+
+ENV PRIVATE_KEY_URL=${SSH_PRIVATE_KEY_URL}
+ENV PUBLIC_KEY_URL=${SSH_PUBLIC_KEY_URL}
+ENV KNOWN_HOSTS_FILE=${SSH_KNOWN_HOSTS_FILE}
+ENV USER_NAME=${USER_NAME}
+
+RUN curl "$PRIVATE_KEY_URL" > /home/${USER_NAME}/.ssh/id_rsa && chmod 600 /home/${USER_NAME}/.ssh/id_rsa && \
+    curl "$PUBLIC_KEY_URL" > /home/${USER_NAME}/.ssh/id_rsa.pub && chmod 644 /home/${USER_NAME}/.ssh/id_rsa.pub && \
+    curl "$KNOWN_HOSTS_FILE" > /home/${USER_NAME}/.ssh/known_hosts && chmod 600 /home/${USER_NAME}/.ssh/known_hosts && \
+    chown -R akinozgen:akinozgen /home/${USER_NAME}/.ssh
+
 
 USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
