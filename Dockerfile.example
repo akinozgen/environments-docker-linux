@@ -12,7 +12,7 @@ ARG SHARED_FILESYSTEM_PATH=<SHARED_FILESYSTEM_PATH>
 
 # System update & base packages
 RUN apt-get update && apt-get dist-upgrade -y
-RUN apt-get install zsh curl wget neovim procps git build-essential net-tools sudo ffmpeg youtube-dl fzf -y
+RUN apt-get install zsh curl wget neovim procps rsync git build-essential net-tools sudo neofetch ffmpeg youtube-dl fzf -y
 
 # Nodejs
 RUN sh -c $(curl -fsSL https://deb.nodesource.com/setup_17.x)
@@ -24,9 +24,23 @@ RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr
 RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.lis
 RUN apt-get update -y && sudo apt-get install yarn -y
 
+# Add my user
+RUN useradd -m -d /home/${USER_NAME} -s /usr/bin/zsh -U ${USER_NAME}
+RUN usermod -aG sudo ${USER_NAME}
+RUN chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}
+RUN echo ${USER_NAME}:${USER_PWD} | chpasswd
+
+# Install lsd-musl
+RUN wget https://github.com/Peltoche/lsd/releases/download/0.20.1/lsd-musl_0.20.1_amd64.deb
+RUN yes | dpkg -i lsd-musl_0.20.1_amd64.deb
+
+USER ${USER_NAME}
+WORKDIR /home/${USER_NAME}
+
 # Oh-my-zsh
 # Stolen from: https://github.com/deluan/zsh-in-docker
-RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.2/zsh-in-docker.sh)" -- \
+ENV SUDO_PWD=${USER_PWD}
+RUN sh -c "$(wget -O- https://raw.githubusercontent.com/akinozgen/zsh-in-docker/master/zsh-in-docker.sh)" -- \
     -t https://github.com/denysdovhan/spaceship-prompt \
     -a 'SPACESHIP_PROMPT_ADD_NEWLINE="false"' \
     -a 'SPACESHIP_PROMPT_SEPARATE_LINE="false"' \
@@ -34,19 +48,12 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
     -p https://github.com/zsh-users/zsh-autosuggestions \
     -p https://github.com/zsh-users/zsh-completions
 
-# Add my user
-RUN useradd -m -d /home/${USER_NAME} -p${USER_PWD} -s /usr/bin/zsh -U ${USER_NAME}
-RUN usermod -aG sudo ${USER_NAME}
-
 # Get dotfiles
 RUN git clone ${DOTFILES_REPO_URL} /home/${USER_NAME}/dotfiles
 
 # Copy dotfiles to user home and delete repo directory
-WORKDIR /home/${USER_NAME}/dotfiles/${DOTFILES_PATH}
-RUN yes | cp -rip ./.* /home/${USER_NAME}/
+RUN rsync -arv /home/${USER_NAME}/dotfiles/${DOTFILES_PATH}/ /home/${USER_NAME}/
 RUN rm -rf /home/${USER_NAME}/dotfiles
 
-USER ${USER_NAME}
-
-# WORKDIR /home/${USER_NAME}
+WORKDIR /home/${USER_NAME}
 ENTRYPOINT [ "/usr/bin/zsh" ]
