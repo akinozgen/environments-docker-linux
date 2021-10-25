@@ -1,6 +1,6 @@
 FROM --platform=linux/x86_64 debian:latest
 
-ARG USER_PWD=<USER_PWD>
+ARG SUDO_PASSWORD=<SUDO_PASSWORD>
 ARG USER_NAME=<USER_NAME>
 ARG DOTFILES_REPO_URL=<DOTFILES_REPO_URL>
 ARG DOTFILES_PATH=<DOTFILES_PATH>
@@ -27,7 +27,7 @@ RUN apt-get update -y && sudo apt-get install yarn -y
 RUN useradd -m -d /home/${USER_NAME} -s /usr/bin/zsh -U ${USER_NAME}
 RUN usermod -aG sudo ${USER_NAME}
 RUN chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}
-RUN echo ${USER_NAME}:${USER_PWD} | chpasswd
+RUN echo ${USER_NAME}:${SUDO_PASSWORD} | chpasswd
 
 # Install lsd-musl
 RUN wget https://github.com/Peltoche/lsd/releases/download/0.20.1/lsd-musl_0.20.1_amd64.deb
@@ -54,7 +54,7 @@ WORKDIR /home/${USER_NAME}
 
 # Oh-my-zsh
 # Stolen from: https://github.com/deluan/zsh-in-docker
-ENV SUDO_PWD=${USER_PWD}
+ENV SUDO_PWD=${SUDO_PASSWORD}
 RUN sh -c "$(wget -O- https://raw.githubusercontent.com/akinozgen/zsh-in-docker/master/zsh-in-docker.sh)" -- \
     -t https://github.com/denysdovhan/spaceship-prompt \
     -a 'SPACESHIP_PROMPT_ADD_NEWLINE="false"' \
