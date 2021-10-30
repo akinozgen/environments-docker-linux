@@ -68,7 +68,7 @@ RUN git clone ${DOTFILES_REPO_URL} /home/${USER_NAME}/dotfiles
 
 # Copy dotfiles to user home and delete repo directory
 RUN rsync -arv /home/${USER_NAME}/dotfiles/${DOTFILES_PATH}/ /home/${USER_NAME}/
-RUN rm -rf /home/${USER_NAME}/dotfiles
+RUN mv /home/${USER_NAME}/dotfiles /home/${USER_NAME}/.dotfiles
 
 WORKDIR /home/${USER_NAME}
 ENTRYPOINT [ "/usr/bin/zsh" ]
